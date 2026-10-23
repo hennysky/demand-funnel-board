@@ -1,0 +1,26 @@
+# OS & Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
+dist/
+build/
+*.egg-info/
+
+# Local & Private Data (Prevent accidental data leaks)
+private/
+sources/
+data/private*.json
+*.local.json
+.env
+.env.*

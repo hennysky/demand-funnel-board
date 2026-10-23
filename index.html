@@ -1,0 +1,2473 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demand Funnel Board · 需求漏斗看板 v1.0.0</title>
+<style>
+/* ==========================================================================
+   Design System & Tokens (Calm, Ergonomic, Enterprise Grade)
+   ========================================================================== */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Status Colors (Soft, high legibility, gentle on eyes) */
+  --c-todo: #94a3b8;
+  --c-doing: #3b82f6;
+  --c-blocked: #ef4444;
+  --c-done: #10b981;
+  --c-stale: #f59e0b;
+
+  /* Department Chip Colors */
+  --dept-bu-bg: rgba(168, 85, 247, 0.12);
+  --dept-bu-color: #c084fc;
+  --dept-mgmt-bg: rgba(59, 130, 246, 0.12);
+  --dept-mgmt-color: #60a5fa;
+  --dept-tech-bg: rgba(16, 185, 129, 0.12);
+  --dept-tech-color: #34d399;
+  --dept-ext-bg: rgba(245, 158, 11, 0.12);
+  --dept-ext-color: #fbbf24;
+}
+
+/* Dark Theme (Gentle Slate-Navy, eliminates asthenopia / eye glare) */
+[data-theme="dark"] {
+  --bg-app: #0e121a;
+  --bg-surface: #151b26;
+  --bg-surface-elevated: #1c2433;
+  --bg-card: #1a2230;
+  --bg-card-hover: #232d3f;
+  --border: #283447;
+  --border-subtle: #1f2a3a;
+  --border-focus: #3b82f6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #8493a8;
+  --text-disabled: #4b586e;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 28px rgba(0,0,0,0.5);
+  --quote-bg: rgba(59, 130, 246, 0.08);
+  --quote-border: rgba(59, 130, 246, 0.35);
+  --blocker-bg: rgba(239, 68, 68, 0.1);
+  --blocker-border: rgba(239, 68, 68, 0.35);
+  --scrollbar-track: #0e121a;
+  --scrollbar-thumb: #283447;
+}
+
+/* Light Theme (Clean, soft paper tone, crisp contrast) */
+[data-theme="light"] {
+  --bg-app: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --border-subtle: #edf2f7;
+  --border-focus: #2563eb;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 12px 24px rgba(0,0,0,0.09);
+  --quote-bg: rgba(37, 99, 235, 0.05);
+  --quote-border: rgba(37, 99, 235, 0.3);
+  --blocker-bg: rgba(239, 68, 68, 0.06);
+  --blocker-border: rgba(239, 68, 68, 0.25);
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.container {
+  max-width: 1580px;
+  margin: 0 auto;
+  padding: 28px 36px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ==========================================================================
+   Header (Calm, Grounded, Professional)
+   ========================================================================== */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-title-area h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title-area p {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin-top: 5px;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-done);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* ==========================================================================
+   Metrics Bar (Refined Bento KPI Cards)
+   ========================================================================== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.metric-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.metric-card:hover {
+  border-color: var(--border-focus);
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.metric-card.warn .metric-value { color: var(--c-blocked); }
+.metric-card.stale .metric-value { color: var(--c-stale); }
+.metric-card.doing .metric-value { color: var(--c-doing); }
+.metric-card.done .metric-value { color: var(--c-done); }
+
+/* ==========================================================================
+   Toolbar & Main Navigation
+   ========================================================================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-surface-elevated);
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-tab:hover {
+  color: var(--text-primary);
+}
+
+.nav-tab.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  padding: 7px 14px;
+  width: 220px;
+  outline: none;
+  transition: border-color 0.15s, width 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--border-focus);
+  width: 260px;
+}
+
+.filter-select {
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  padding: 7px 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-focus);
+}
+
+.btn.btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* ==========================================================================
+   View 1: 看板分列 (Kanban Columns) - Fixed Height & Comfortable Width
+   ========================================================================== */
+.view-panel {
+  display: none;
+}
+.view-panel.active {
+  display: block;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  height: calc(100vh - 290px);
+  min-height: 540px;
+  max-height: 780px;
+}
+
+.kanban-col {
+  flex: 0 0 360px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kanban-col-head {
+  flex-shrink: 0;
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.col-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.col-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.col-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-surface-elevated);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.kanban-cards-wrapper {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+}
+
+/* Kanban Card Component */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.card:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-sm);
+}
+
+.card.is-stale {
+  border-left: 3px solid var(--c-stale);
+}
+
+.card.is-blocked {
+  border-left: 3px solid var(--c-blocked);
+}
+
+.card.is-done {
+  opacity: 0.72;
+}
+.card.is-done .card-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.card-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2.5px 8px;
+  border-radius: 5px;
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.chip-source {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.chip-stale {
+  color: var(--c-stale);
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.card-date {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+.card-quote {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--quote-bg);
+  border-left: 3px solid var(--quote-border);
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-blocker {
+  font-size: 12.5px;
+  color: var(--c-blocked);
+  background: var(--blocker-bg);
+  border: 1px solid var(--blocker-border);
+  padding: 8px 10px;
+  border-radius: 6px;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.card-actions {
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.card:hover .card-actions {
+  opacity: 1;
+}
+
+.card-action-btn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.card-action-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+/* ==========================================================================
+   View 2: 日历时间轴 (Horizontally Scrollable Gantt with Sticky Freeze Column)
+   ========================================================================== */
+.timeline-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--bg-surface-elevated);
+}
+
+.timeline-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-header-left h3 {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.timeline-scroll-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.timeline-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Timeline Wrapper: horizontal scrollable container */
+.timeline-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
+  position: relative;
+  scrollbar-width: thin;
+}
+
+/* Timeline Grid structure: wide canvas */
+.timeline-grid {
+  display: table;
+  width: max-content;
+  min-width: 2400px;
+  position: relative;
+}
+
+/* Timeline Ruler */
+.timeline-ruler {
+  display: flex;
+  height: 54px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.ruler-label-title {
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border);
+  background: var(--bg-surface-elevated);
+  position: sticky;
+  left: 0;
+  z-index: 25;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+}
+
+.ruler-track {
+  flex: 1 1 auto;
+  min-width: 2080px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.ruler-months {
+  height: 24px;
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.ruler-month-block {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 2px 10px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ruler-ticks {
+  height: 30px;
+  position: relative;
+}
+
+.ruler-tick {
+  position: absolute;
+  top: 6px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Timeline Rows */
+.timeline-row {
+  display: flex;
+  min-height: 46px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.12s;
+  position: relative;
+}
+
+.timeline-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.timeline-row-label {
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  padding: 10px 16px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: var(--bg-surface);
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
+  transition: background 0.12s;
+}
+
+.timeline-row:hover .timeline-row-label {
+  background: var(--bg-card-hover);
+}
+
+.timeline-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-row-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-row-track {
+  flex: 1 1 auto;
+  min-width: 2080px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-subtle);
+  pointer-events: none;
+}
+
+.timeline-bar {
+  position: absolute;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 26px;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-weight: 500;
+  transition: filter 0.15s, transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.timeline-bar:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.timeline-bar.doing {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.timeline-bar.blocked {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.timeline-bar.stale {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px dashed rgba(245, 158, 11, 0.5);
+}
+
+.timeline-bar.done {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.timeline-now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.timeline-now-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2px;
+  width: 6px;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* ==========================================================================
+   View 3: 协同待办清单 (Checklist by Department & Filters)
+   ========================================================================== */
+.checklist-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.checklist-title-group h2 {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.checklist-title-group p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Department Filter Tabs */
+.dept-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dept-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dept-pill:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.dept-pill.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.dept-pill .count {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  opacity: 0.85;
+}
+
+.checklist-table {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.12s;
+}
+
+.checklist-item:last-child {
+  border-bottom: none;
+}
+
+.checklist-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.checklist-item.is-done {
+  background: var(--bg-surface-elevated);
+  opacity: 0.65;
+}
+
+.checklist-item.is-done .checklist-subject {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.checklist-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.todo-checkbox {
+  width: 19px;
+  height: 19px;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.checklist-item.is-done .todo-checkbox {
+  background: var(--c-done);
+  border-color: var(--c-done);
+}
+
+.dept-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dept-tag.bu { background: var(--dept-bu-bg); color: var(--dept-bu-color); }
+.dept-tag.mgmt { background: var(--dept-mgmt-bg); color: var(--dept-mgmt-color); }
+.dept-tag.tech { background: var(--dept-tech-bg); color: var(--dept-tech-color); }
+.dept-tag.ext { background: var(--dept-ext-bg); color: var(--dept-ext-color); }
+
+.checklist-subject {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.checklist-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.checklist-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.btn-convert {
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-elevated);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-convert:hover {
+  color: #3b82f6;
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* ==========================================================================
+   View 4: 技术待办 (Code TODO)
+   ========================================================================== */
+.code-todo-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.code-todo-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.code-todo-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.code-todo-text {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.code-todo-loc {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  word-break: break-all;
+}
+
+.code-todo-tag {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Modal Dialogs
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.form-input, .form-select, .form-textarea {
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title-area">
+      <h1>需求漏斗看板 <span style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:12px;background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);vertical-align:middle;margin-left:6px;">v1.0.0</span></h1>
+      <p>轻量敏捷需求全生命周期管理 · 日历甘特时间轴 · 协同待办矩阵 · 纯前端零依赖</p>
+    </div>
+    <div class="header-meta">
+      <div class="sync-badge">
+        <span class="sync-dot"></span>
+        <span id="syncText">自动同步: 每日 09:00</span>
+      </div>
+      <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="切换深浅主题">🌙</button>
+    </div>
+  </header>
+
+  <!-- Metrics Bar -->
+  <section class="metrics-grid" id="metricsBar"></section>
+
+  <!-- Navigation & Toolbar -->
+  <div class="toolbar">
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-kanban" onclick="switchMainView('kanban')">📊 看板分列</button>
+      <button class="nav-tab" id="tab-timeline" onclick="switchMainView('timeline')">📅 日历时间轴</button>
+      <button class="nav-tab" id="tab-todos" onclick="switchMainView('todos')">✅ 协同待办清单</button>
+      <button class="nav-tab" id="tab-code" onclick="switchMainView('code')">💻 技术待办</button>
+    </div>
+
+    <div class="toolbar-controls">
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索事项 / 来源 / 卡点…" oninput="onSearchInput()">
+      <select class="filter-select" id="channelSelect" onchange="onChannelChange()">
+        <option value="">全部渠道</option>
+        <option value="dingtalk_chat">💬 业务沟通</option>
+        <option value="dingtalk_todo">📌 协同待办</option>
+        <option value="project_task">🧩 架构任务</option>
+        <option value="ticket">🛠 工程工单</option>
+        <option value="manual">✍ 手动新增</option>
+      </select>
+      <button class="btn btn-primary" onclick="openAddModal()">+ 新建需求</button>
+      <button class="btn" onclick="copyDingTalkSummary()">📋 复制工作简报</button>
+      <button class="btn" onclick="exportData()">导出数据</button>
+      <button class="btn" onclick="document.getElementById('importInput').click()">导入数据</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(this)">
+    </div>
+  </div>
+
+  <!-- View 1: 看板分列 -->
+  <div class="view-panel active" id="panel-kanban">
+    <div class="kanban-board" id="kanbanBoard"></div>
+  </div>
+
+  <!-- View 2: 日历时间轴 (Horizontally Scrollable Gantt) -->
+  <div class="view-panel" id="panel-timeline">
+    <div class="timeline-container">
+      <div class="timeline-header">
+        <div class="timeline-header-left">
+          <h3>需求进度日历（提出时间 ➔ 当前进展）</h3>
+          <span class="timeline-scroll-hint">⟷ 可鼠标横向滚轮 / 触控板左右滑动</span>
+        </div>
+        <div class="timeline-header-right">
+          <button class="btn" onclick="scrollToToday()" title="一键定位到今日">🎯 定位到今日</button>
+          <div class="timeline-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>推进中</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>遇到卡点</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>超14天未动</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>已完成</span>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-wrapper" id="timelineWrapper">
+        <div class="timeline-grid" id="timelineGrid">
+          <div class="timeline-ruler">
+            <div class="ruler-label-title">需求事项 (点击编辑)</div>
+            <div class="ruler-track" id="rulerTrack">
+              <div class="ruler-months" id="rulerMonths"></div>
+              <div class="ruler-ticks" id="rulerTicks"></div>
+            </div>
+          </div>
+          <div id="timelineRows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 3: 协同待办清单 -->
+  <div class="view-panel" id="panel-todos">
+    <div class="checklist-container">
+      <div class="checklist-header">
+        <div class="checklist-title-group">
+          <h2>协同待办事项清单</h2>
+          <p id="todoStatsText">全量拉取协同待办任务，支持按事业部/归属人快速筛选</p>
+        </div>
+        <div class="dept-filter-bar" id="deptFilterBar"></div>
+      </div>
+      <div class="checklist-table" id="checklistTable"></div>
+    </div>
+  </div>
+
+  <!-- View 4: 技术待办 -->
+  <div class="view-panel" id="panel-code">
+    <div class="code-todo-container">
+      <div>
+        <h2 style="font-size: 16.5px; font-weight: 600;">代码待办清单 (TODO 注释)</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">扫描日常代码中保留的待优化项与待处理标记</p>
+      </div>
+      <div id="codeTodoList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: 新建/编辑需求 -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">编辑需求事项</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>需求标题 *</label>
+      <input type="text" class="form-input" id="fTitle" placeholder="简要说明需求事项">
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-group">
+        <label>流转状态</label>
+        <select class="form-select" id="fStatus">
+          <option value="todo">新收到 / 待沟通</option>
+          <option value="doing">推进中</option>
+          <option value="blocked">遇到卡点 / 待协调</option>
+          <option value="done">已完成 / 已上线</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>来源渠道</label>
+        <select class="form-select" id="fChannel">
+          <option value="dingtalk_chat">💬 业务沟通</option>
+          <option value="dingtalk_todo">📌 协同待办</option>
+          <option value="project_task">🧩 架构任务</option>
+          <option value="ticket">🛠 工程工单</option>
+          <option value="manual">✍ 手动新增</option>
+        </select>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-group">
+        <label>提出人 / 来源</label>
+        <input type="text" class="form-input" id="fSource" placeholder="例如：产品组 / 架构师 / 运营组">
+      </div>
+      <div class="form-group">
+        <label>提出日期</label>
+        <input type="date" class="form-input" id="fDate">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>原始沟通记录 / 业务背景</label>
+      <textarea class="form-textarea" id="fQuote" placeholder="记录领导原话或原始聊天文本，保留真实业务诉求"></textarea>
+    </div>
+    <div class="form-group">
+      <label>卡点说明 (若有)</label>
+      <input type="text" class="form-input" id="fBlocker" placeholder="例如：等接口权限、等商品部确认口径">
+    </div>
+    <div class="form-group">
+      <label>推进记录 / 备注</label>
+      <input type="text" class="form-input" id="fNotes" placeholder="实施方案、关联链接或进展记录">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="btnDeleteReq" style="margin-right:auto; color:var(--c-blocked); border-color:var(--c-blocked);" onclick="deleteCurrentReq()">删除此需求</button>
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveReqForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     数据占位块（供 generate.py 正则匹配替换，必须严格保留 script id 结构）
+     ========================================================================== -->
+<script type="application/json" id="board-data">
+{
+ "generatedAt": "2026-10-23 11:50",
+ "version": "1.0.0",
+ "sources": {
+  "totalReqs": 10,
+  "activeTasks": 8,
+  "todos": 14,
+  "codeTodos": 3
+ },
+ "requirements": [
+  {
+   "id": "req-01",
+   "title": "第三方开放平台 API 速率限制排队队列设计",
+   "source": "架构评审",
+   "date": "2026-10-12",
+   "status": "blocked",
+   "updated": "2026-10-14",
+   "quote": "对接第三方开放平台时触发每秒 QPS 限制，需要设计基于 Redis Token Bucket 的平滑削峰排队队列，保证核心订单同步不丢单。",
+   "blocker": "需跨部门联合评审 Redis 集群容量规划与死信队列告警机制",
+   "notes": "已完成本地 POC 验证，等待基础设施团队确认中间件生产选型。",
+   "channel": "ticket"
+  },
+  {
+   "id": "req-02",
+   "title": "日历时间轴横向甘特图与冻结列交互优化",
+   "source": "体验优化",
+   "date": "2026-10-15",
+   "status": "doing",
+   "updated": "2026-10-23",
+   "quote": "支持 4 个月跨度横向拖拽与平滑触控滑动，左侧需求事项列吸顶冻结，支持“一键定位今日”锚点跳转。",
+   "blocker": "",
+   "notes": "v1.0.0 核心交互特性，已完成主流分辨率与触控适配。",
+   "channel": "project_task"
+  },
+  {
+   "id": "req-03",
+   "title": "暗黑 / 明亮主题双模自适应与护眼色板",
+   "source": "产品规划",
+   "date": "2026-10-18",
+   "status": "doing",
+   "updated": "2026-10-22",
+   "quote": "采用深色板岩蓝与温和纸张灰调，杜绝高对比度眩光，系统级跟随系统外观或手动切换。",
+   "blocker": "",
+   "notes": "已接入 CSS Custom Properties 主题系统，持久化至 localStorage。",
+   "channel": "project_task"
+  },
+  {
+   "id": "req-04",
+   "title": "自动化定时数据同步与发布流水线",
+   "source": "DevOps",
+   "date": "2026-10-20",
+   "status": "doing",
+   "updated": "2026-10-23",
+   "quote": "通过 Python 脚本聚合多源数据（Jira/飞书/钉钉/代码仓库），定时生成静态看板并自动推送部署。",
+   "blocker": "",
+   "notes": "已支持增量扫描与纯静态 JSON 注入，零服务端运行成本。",
+   "channel": "project_task"
+  },
+  {
+   "id": "req-05",
+   "title": "多渠道订单数据实时清洗与格式统一",
+   "source": "数据工程",
+   "date": "2026-10-16",
+   "status": "doing",
+   "updated": "2026-10-21",
+   "quote": "针对各渠道不同命名规范进行字段映射与枚举清洗，输出标准化订单宽表。",
+   "blocker": "",
+   "notes": "已完成数据字典编写与初期转换流水线搭建。",
+   "channel": "project_task"
+  },
+  {
+   "id": "req-06",
+   "title": "用户安全二次认证 (2FA / TOTP) 接入",
+   "source": "安全合规",
+   "date": "2026-10-08",
+   "status": "todo",
+   "updated": "2026-10-10",
+   "quote": "针对敏感业务管理模块增加基于 TOTP 动态验证码与登录设备绑定保护，防止凭据流失。",
+   "blocker": "待安全团队提供公共认证中间件统一接入规范",
+   "notes": "优先在管理后台关键接口中开启试运行。",
+   "channel": "manual"
+  },
+  {
+   "id": "req-07",
+   "title": "多语言国际化 (i18n) 语言包动态加载",
+   "source": "用户反馈",
+   "date": "2026-09-15",
+   "status": "todo",
+   "updated": "2026-09-18",
+   "quote": "为海外协同团队提供英文/多语言界面切换支持，首期支持中英文。",
+   "blocker": "",
+   "notes": "列入 Q4 储备需求池，等待国际化词条规范整理。",
+   "channel": "manual"
+  },
+  {
+   "id": "req-08",
+   "title": "移动端触摸手势与触控板平滑滑动优化",
+   "source": "移动体验",
+   "date": "2026-09-20",
+   "status": "todo",
+   "updated": "2026-09-25",
+   "quote": "在平板和手机设备上优化时间轴手势缩放与看板卡片纵向滑动的冲突问题。",
+   "blocker": "",
+   "notes": "采用 touch-action 与 CSS Scroll Snap 进行性能调优。",
+   "channel": "manual"
+  },
+  {
+   "id": "req-09",
+   "title": "v1.0.0 正式版发布与开源标准化",
+   "source": "版本发布",
+   "date": "2026-10-22",
+   "status": "done",
+   "updated": "2026-10-23",
+   "quote": "封装零 npm 构建依赖的独立开源版本，剥离私有业务数据，提供标准化示例与接入指南。",
+   "blocker": "",
+   "notes": "已打包独立 Git 仓库，附带 MIT License、完整文档与演示数据。",
+   "channel": "project_task"
+  },
+  {
+   "id": "req-10",
+   "title": "纯前端 JSON 数据导入导出与工作简报生成",
+   "source": "效率工具",
+   "date": "2026-10-10",
+   "status": "done",
+   "updated": "2026-10-20",
+   "quote": "支持一键导出/导入看板快照，一键复制格式化 Markdown 推进简报至系统剪贴板。",
+   "blocker": "",
+   "notes": "无服务端存储依赖，数据完全由使用者本地掌控。",
+   "channel": "project_task"
+  }
+ ],
+ "todos": [
+  {
+   "id": "todo-01",
+   "subject": "多租户数据权限隔离方案技术调研与评审",
+   "creator": "决策与规划",
+   "dept": "决策与规划",
+   "date": "2026-10-18"
+  },
+  {
+   "id": "todo-02",
+   "subject": "核心 API 响应耗时与慢查询告警阈值调优",
+   "creator": "架构与研发",
+   "dept": "架构与研发",
+   "date": "2026-10-19"
+  },
+  {
+   "id": "todo-03",
+   "subject": "看板分列卡片内滚动条视觉样式精细化",
+   "creator": "核心业务",
+   "dept": "核心业务",
+   "date": "2026-10-20"
+  },
+  {
+   "id": "todo-04",
+   "subject": "Webhook 机器人推送模板样式与 Emoji 对齐",
+   "creator": "协同与工具",
+   "dept": "协同与工具",
+   "date": "2026-10-20"
+  },
+  {
+   "id": "todo-05",
+   "subject": "代码仓库 TODO/FIXME 自动化扫描过滤规则优化",
+   "creator": "架构与研发",
+   "dept": "架构与研发",
+   "date": "2026-10-21"
+  },
+  {
+   "id": "todo-06",
+   "subject": "浏览器离线 LocalStorage 缓存与自动恢复机制",
+   "creator": "架构与研发",
+   "dept": "架构与研发",
+   "date": "2026-10-21"
+  },
+  {
+   "id": "todo-07",
+   "subject": "甘特时间轴支持日期范围拖拽与关键里程碑标记",
+   "creator": "核心业务",
+   "dept": "核心业务",
+   "date": "2026-10-22"
+  },
+  {
+   "id": "todo-08",
+   "subject": "产品需求全景视图支持按季度进行层级归类",
+   "creator": "决策与规划",
+   "dept": "决策与规划",
+   "date": "2026-10-22"
+  },
+  {
+   "id": "todo-09",
+   "subject": "针对大型数据集的虚拟滚动 (Virtual Scroll) 原型测试",
+   "creator": "架构与研发",
+   "dept": "架构与研发",
+   "date": "2026-10-22"
+  },
+  {
+   "id": "todo-10",
+   "subject": "协同清单支持多选批量转为需求看板卡片",
+   "creator": "核心业务",
+   "dept": "核心业务",
+   "date": "2026-10-23"
+  },
+  {
+   "id": "todo-11",
+   "subject": "导出 CSV / Excel 格式报表功能支持",
+   "creator": "核心业务",
+   "dept": "核心业务",
+   "date": "2026-10-23"
+  },
+  {
+   "id": "todo-12",
+   "subject": "企业微信 / 飞书 / 钉钉待办事项双向同步插件框架",
+   "creator": "协同与工具",
+   "dept": "协同与工具",
+   "date": "2026-10-23"
+  },
+  {
+   "id": "todo-13",
+   "subject": "设计系统设计令牌 (Design Tokens) 规范文档整理",
+   "creator": "核心业务",
+   "dept": "核心业务",
+   "date": "2026-10-23"
+  },
+  {
+   "id": "todo-14",
+   "subject": "GitHub Actions 持续集成与自动化发布测试",
+   "creator": "协同与工具",
+   "dept": "协同与工具",
+   "date": "2026-10-23"
+  }
+ ],
+ "codeTodos": [
+  {
+   "file": "scripts/generate.py",
+   "line": 42,
+   "tag": "TODO",
+   "text": "支持从远程 Webhook 或 GraphQL 接口拉取需求数据"
+  },
+  {
+   "file": "index.html",
+   "line": 215,
+   "tag": "TODO",
+   "text": "在低配移动设备上优化横向惯性平滑滑动的帧率"
+  },
+  {
+   "file": "scripts/generate.py",
+   "line": 98,
+   "tag": "FIXME",
+   "text": "增加对非 UTF-8 编码任务描述文件的自动探测与容错"
+  }
+ ]
+}
+</script>
+
+<!-- ==========================================================================
+     Client Logic Engine
+     ========================================================================== -->
+<script>
+const LS_REQS = "funnel_requirements_v3";
+const LS_TODOS_DONE = "funnel_todos_done_v3";
+const LS_THEME = "funnel_theme_v3";
+
+const STATUSES = [
+  { key: "todo", name: "新收到 / 待沟通", color: "#94a3b8" },
+  { key: "doing", name: "推进中", color: "#3b82f6" },
+  { key: "blocked", name: "遇到卡点 / 待协调", color: "#ef4444" },
+  { key: "done", name: "已完成 / 已上线", color: "#10b981" }
+];
+
+const CHANNELS = {
+  dingtalk_chat: { label: "业务沟通", icon: "💬" },
+  dingtalk_todo: { label: "协同待办", icon: "📌" },
+  project_task: { label: "架构任务", icon: "🧩" },
+  ticket: { label: "工程工单", icon: "🛠" },
+  manual: { label: "手动新增", icon: "✍" }
+};
+
+let SEED = {};
+let state = {
+  requirements: [],
+  todos: [],
+  doneTodoIds: new Set(),
+  codeTodos: []
+};
+
+let activeTab = "kanban";
+let currentSearch = "";
+let currentChannel = "";
+let activeDeptFilter = "all";
+let editingId = null;
+
+// Initialize
+(function init() {
+  try {
+    const raw = document.getElementById("board-data").textContent;
+    SEED = JSON.parse(raw);
+  } catch (e) {
+    console.error("Failed to parse board-data", e);
+    SEED = { requirements: [], todos: [], codeTodos: [] };
+  }
+
+  // Load done state for todos
+  try {
+    const savedDones = JSON.parse(localStorage.getItem(LS_TODOS_DONE) || "[]");
+    state.doneTodoIds = new Set(savedDones);
+  } catch(e) {
+    state.doneTodoIds = new Set();
+  }
+
+  // Load / Merge requirements
+  const storedReqs = localStorage.getItem(LS_REQS);
+  if (storedReqs) {
+    try {
+      const localList = JSON.parse(storedReqs);
+      const seedMap = new Map((SEED.requirements || []).map(r => [r.id, r]));
+      const localIds = new Set(localList.map(r => r.id));
+      
+      state.requirements = localList;
+      (SEED.requirements || []).forEach(r => {
+        if (!localIds.has(r.id)) {
+          state.requirements.push(r);
+        }
+      });
+    } catch (e) {
+      state.requirements = SEED.requirements || [];
+    }
+  } else {
+    state.requirements = SEED.requirements || [];
+  }
+
+  state.todos = SEED.todos || [];
+  state.codeTodos = SEED.codeTodos || [];
+
+  // Theme
+  const savedTheme = localStorage.getItem(LS_THEME) || "dark";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  updateThemeIcon(savedTheme);
+
+  // Sync bar
+  if (SEED.generatedAt) {
+    document.getElementById("syncText").textContent = "自动同步: 每日 09:00 · 上次生成: " + SEED.generatedAt;
+  }
+
+  renderAll();
+  enableTimelineDrag();
+})();
+
+function saveState() {
+  localStorage.setItem(LS_REQS, JSON.stringify(state.requirements));
+  localStorage.setItem(LS_TODOS_DONE, JSON.stringify(Array.from(state.doneTodoIds)));
+}
+
+function renderAll() {
+  renderMetrics();
+  renderKanban();
+  renderTimeline();
+  renderTodos();
+  renderCodeTodos();
+}
+
+/* ==========================================================================
+   Metrics
+   ========================================================================== */
+function renderMetrics() {
+  const reqs = state.requirements;
+  const total = reqs.length;
+  const doing = reqs.filter(r => r.status === "doing").length;
+  const blocked = reqs.filter(r => r.status === "blocked").length;
+  const stale = reqs.filter(isStaleReq).length;
+  const done = reqs.filter(r => r.status === "done").length;
+  const openTodos = state.todos.filter(t => !state.doneTodoIds.has(t.id)).length;
+
+  const bar = document.getElementById("metricsBar");
+  bar.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">需求总量 <span>ALL</span></div>
+      <div class="metric-value">${total}</div>
+    </div>
+    <div class="metric-card doing">
+      <div class="metric-label">推进中 <span>DOING</span></div>
+      <div class="metric-value">${doing}</div>
+    </div>
+    <div class="metric-card warn">
+      <div class="metric-label">遇到卡点 <span>BLOCKED</span></div>
+      <div class="metric-value">${blocked}</div>
+    </div>
+    <div class="metric-card stale">
+      <div class="metric-label">超14天未动 <span>STALE</span></div>
+      <div class="metric-value">${stale}</div>
+    </div>
+    <div class="metric-card done">
+      <div class="metric-label">已完成 <span>DONE</span></div>
+      <div class="metric-value">${done}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">待办事项 <span>TODO</span></div>
+      <div class="metric-value">${openTodos} <span style="font-size:13px;color:var(--text-muted);font-weight:400;">/ ${state.todos.length}</span></div>
+    </div>
+  `;
+}
+
+function isStaleReq(r) {
+  if (r.status === "done") return false;
+  const d = r.updated || r.date;
+  if (!d) return false;
+  const days = Math.floor((Date.now() - new Date(d + "T00:00:00").getTime()) / 86400000);
+  return days >= 14;
+}
+
+function getDaysSince(d) {
+  if (!d) return 0;
+  return Math.floor((Date.now() - new Date(d + "T00:00:00").getTime()) / 86400000);
+}
+
+/* ==========================================================================
+   View 1: 看板分列 (Kanban Columns)
+   ========================================================================== */
+function renderKanban() {
+  const board = document.getElementById("kanbanBoard");
+  board.innerHTML = "";
+
+  STATUSES.forEach((st, idx) => {
+    const col = document.createElement("div");
+    col.className = "kanban-col";
+
+    const filtered = state.requirements.filter(r => {
+      if (r.status !== st.key) return false;
+      if (currentChannel && r.channel !== currentChannel) return false;
+      if (currentSearch) {
+        const q = currentSearch.toLowerCase();
+        const text = (r.title + " " + (r.source||"") + " " + (r.quote||"") + " " + (r.blocker||"")).toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      return true;
+    });
+
+    filtered.sort((a, b) => (b.updated || b.date || "").localeCompare(a.updated || a.date || ""));
+
+    col.innerHTML = `
+      <div class="kanban-col-head">
+        <div class="col-head-left">
+          <span class="col-dot" style="background:${st.color}"></span>
+          <span class="col-title">${st.name}</span>
+        </div>
+        <span class="col-badge">${filtered.length}</span>
+      </div>
+      <div class="kanban-cards-wrapper" id="col-cards-${st.key}"></div>
+    `;
+
+    const cardsWrapper = col.querySelector(`#col-cards-${st.key}`);
+
+    if (filtered.length === 0) {
+      cardsWrapper.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:36px 10px;font-size:13px;">暂无事项</div>`;
+    } else {
+      filtered.forEach(r => {
+        const card = createCardEl(r, idx);
+        cardsWrapper.appendChild(card);
+      });
+    }
+
+    board.appendChild(col);
+  });
+}
+
+function createCardEl(r, colIdx) {
+  const stale = isStaleReq(r);
+  const blocked = r.status === "blocked" || !!r.blocker;
+  const ch = CHANNELS[r.channel] || CHANNELS.manual;
+
+  const el = document.createElement("div");
+  el.className = `card ${stale ? "is-stale" : ""} ${blocked && r.status !== "done" ? "is-blocked" : ""} ${r.status === "done" ? "is-done" : ""}`;
+  el.onclick = () => openEditModal(r.id);
+
+  const days = getDaysSince(r.updated || r.date);
+
+  el.innerHTML = `
+    <div class="card-header">
+      <div class="card-chips">
+        <span class="chip">${ch.icon} ${ch.label}</span>
+        ${r.source ? `<span class="chip chip-source">${escapeHtml(r.source)}</span>` : ""}
+        ${stale ? `<span class="chip chip-stale">未动 ${days}天</span>` : ""}
+      </div>
+      <span class="card-date">${escapeHtml(r.date || "")}</span>
+    </div>
+    <div class="card-title">${escapeHtml(r.title)}</div>
+    ${r.quote ? `<div class="card-quote">“${escapeHtml(r.quote)}”</div>` : ""}
+    ${r.blocker && r.status !== "done" ? `<div class="card-blocker"><span>⛔</span><span>${escapeHtml(r.blocker)}</span></div>` : ""}
+    <div class="card-footer">
+      <span>更新: ${escapeHtml(r.updated || r.date || "—")}</span>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${colIdx > 0 ? `<button class="card-action-btn" title="左移" onclick="moveReq('${r.id}', -1)">‹</button>` : ""}
+        ${colIdx < STATUSES.length - 1 ? `<button class="card-action-btn" title="右移" onclick="moveReq('${r.id}', 1)">›</button>` : ""}
+      </div>
+    </div>
+  `;
+  return el;
+}
+
+function moveReq(id, delta) {
+  const r = state.requirements.find(x => x.id === id);
+  if (!r) return;
+  const currIdx = STATUSES.findIndex(s => s.key === r.status);
+  const newIdx = currIdx + delta;
+  if (newIdx >= 0 && newIdx < STATUSES.length) {
+    r.status = STATUSES[newIdx].key;
+    r.updated = new Date().toISOString().split("T")[0];
+    saveState();
+    renderAll();
+  }
+}
+
+/* ==========================================================================
+   View 2: 日历时间轴 (Horizontally Scrollable Gantt)
+   ========================================================================== */
+function renderTimeline() {
+  const reqs = state.requirements.filter(r => {
+    if (currentChannel && r.channel !== currentChannel) return false;
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      const text = (r.title + " " + (r.source||"") + " " + (r.quote||"") + " " + (r.blocker||"")).toLowerCase();
+      if (!text.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const rulerMonths = document.getElementById("rulerMonths");
+  const rulerTicks = document.getElementById("rulerTicks");
+  const rowsEl = document.getElementById("timelineRows");
+  rulerMonths.innerHTML = "";
+  rulerTicks.innerHTML = "";
+  rowsEl.innerHTML = "";
+
+  if (reqs.length === 0) {
+    rowsEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:50px 10px;font-size:14px;">暂无匹配需求事项</div>`;
+    return;
+  }
+
+  // 1. Calculate time span (From earliest month to next month)
+  let earliestTime = Date.now();
+  reqs.forEach(r => {
+    if (r.date) {
+      const t = new Date(r.date + "T00:00:00").getTime();
+      if (t < earliestTime) earliestTime = t;
+    }
+  });
+
+  const dStart = new Date(earliestTime);
+  dStart.setDate(1);
+  dStart.setHours(0,0,0,0);
+  const minTime = dStart.getTime();
+
+  const dEnd = new Date();
+  dEnd.setMonth(dEnd.getMonth() + 1);
+  dEnd.setDate(15);
+  dEnd.setHours(23,59,59,999);
+  const maxTime = dEnd.getTime();
+
+  const totalDuration = maxTime - minTime;
+  const pct = time => Math.max(0, Math.min(100, ((time - minTime) / totalDuration) * 100));
+
+  // 2. Month Headers
+  let curM = new Date(minTime);
+  while (curM.getTime() < maxTime) {
+    const y = curM.getFullYear();
+    const m = curM.getMonth();
+    const mStart = new Date(y, m, 1).getTime();
+    const mEnd = new Date(y, m + 1, 1).getTime();
+    const clampedStart = Math.max(minTime, mStart);
+    const clampedEnd = Math.min(maxTime, mEnd);
+    const mWidthPct = ((clampedEnd - clampedStart) / totalDuration) * 100;
+
+    const mBlock = document.createElement("div");
+    mBlock.className = "ruler-month-block";
+    mBlock.style.width = mWidthPct + "%";
+    mBlock.textContent = `${y}年 ${m + 1}月`;
+    rulerMonths.appendChild(mBlock);
+
+    curM = new Date(y, m + 1, 1);
+  }
+
+  // 3. Weekly Day Ticks
+  const gridLinePcts = [];
+  let curTick = new Date(minTime);
+  while (curTick.getTime() <= maxTime) {
+    const tickTime = curTick.getTime();
+    const p = pct(tickTime);
+    gridLinePcts.push(p);
+
+    const tickEl = document.createElement("div");
+    tickEl.className = "ruler-tick";
+    tickEl.style.left = p + "%";
+    tickEl.textContent = `${curTick.getMonth() + 1}/${curTick.getDate()}`;
+    rulerTicks.appendChild(tickEl);
+
+    curTick.setDate(curTick.getDate() + 7);
+  }
+
+  // 4. "今日" Marker on ruler
+  const nowTime = Date.now();
+  const nowPct = pct(nowTime);
+  const nowMarker = document.createElement("div");
+  nowMarker.id = "timelineNowMarker";
+  nowMarker.style.cssText = `position:absolute;left:${nowPct}%;top:5px;transform:translateX(-50%);font-size:11.5px;font-weight:600;color:#ef4444;background:var(--bg-surface);padding:1px 6px;border-radius:4px;border:1px solid rgba(239,68,68,0.5);z-index:20;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);`;
+  nowMarker.textContent = `📍 今日 (${new Date().getMonth()+1}-${new Date().getDate()})`;
+  rulerTicks.appendChild(nowMarker);
+
+  // 5. Sort requirements
+  const sortedReqs = [...reqs].sort((a, b) => {
+    const sa = isStaleReq(a) ? 1 : 0;
+    const sb = isStaleReq(b) ? 1 : 0;
+    if (sa !== sb) return sb - sa;
+    if (a.status === "done" && b.status !== "done") return 1;
+    if (b.status === "done" && a.status !== "done") return -1;
+    return (a.date || "").localeCompare(b.date || "");
+  });
+
+  // 6. Rows
+  sortedReqs.forEach(r => {
+    const st = STATUSES.find(s => s.key === r.status) || STATUSES[0];
+    const ch = CHANNELS[r.channel] || CHANNELS.manual;
+
+    const row = document.createElement("div");
+    row.className = "timeline-row";
+
+    const startTime = new Date((r.date || "2026-10-01") + "T00:00:00").getTime();
+    let endTime = nowTime;
+    if (r.status === "done" && r.updated) {
+      endTime = new Date(r.updated + "T00:00:00").getTime();
+    }
+    const leftPct = pct(startTime);
+    const widthPct = Math.max(pct(endTime) - leftPct, 0.8);
+
+    const stale = isStaleReq(r);
+    let barCls = r.status;
+    if (stale) barCls = "stale";
+
+    const daysCount = Math.max(1, Math.floor((endTime - startTime) / 86400000));
+
+    let gridLinesHtml = "";
+    gridLinePcts.forEach(p => {
+      gridLinesHtml += `<div class="timeline-grid-line" style="left:${p}%;"></div>`;
+    });
+
+    row.innerHTML = `
+      <div class="timeline-row-label" onclick="openEditModal('${r.id}')" title="${escapeHtml(r.title)} (${escapeHtml(r.source||'未知来源')})">
+        <span class="timeline-status-dot" style="background:${st.color}"></span>
+        <span class="timeline-row-title">${ch.icon} ${escapeHtml(r.title)}</span>
+      </div>
+      <div class="timeline-row-track">
+        ${gridLinesHtml}
+        <div class="timeline-now-line" style="left:${nowPct}%;"></div>
+        <div class="timeline-bar ${barCls}" style="left:${leftPct}%; width:${widthPct}%;" onclick="openEditModal('${r.id}')" title="${escapeHtml(r.title)} · 历时 ${daysCount} 天 · 状态：${st.name}">
+          ${escapeHtml(r.title)} · ${daysCount}天
+        </div>
+      </div>
+    `;
+    rowsEl.appendChild(row);
+  });
+}
+
+function scrollToToday() {
+  const wrapper = document.getElementById("timelineWrapper");
+  const nowMarker = document.getElementById("timelineNowMarker");
+  if (!wrapper || !nowMarker) return;
+  const leftPct = parseFloat(nowMarker.style.left) || 0;
+  const track = document.getElementById("rulerTrack");
+  if (track) {
+    const trackWidth = track.offsetWidth;
+    const px = (leftPct / 100) * trackWidth;
+    wrapper.scrollTo({ left: Math.max(0, px - 350), behavior: "smooth" });
+  }
+}
+
+function enableTimelineDrag() {
+  const slider = document.getElementById("timelineWrapper");
+  if (!slider) return;
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  slider.addEventListener("mousedown", e => {
+    if (e.target.closest(".timeline-bar") || e.target.closest(".timeline-row-label") || e.target.closest("button")) return;
+    isDown = true;
+    slider.style.cursor = "grabbing";
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+  });
+  slider.addEventListener("mouseleave", () => {
+    isDown = false;
+    slider.style.cursor = "default";
+  });
+  slider.addEventListener("mouseup", () => {
+    isDown = false;
+    slider.style.cursor = "default";
+  });
+  slider.addEventListener("mousemove", e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    slider.scrollLeft = scrollLeft - walk;
+  });
+}
+
+/* ==========================================================================
+   View 3: 协同待办清单 (Checklist by Department)
+   ========================================================================== */
+function categorizeTodo(t) {
+  if (t.dept) {
+    const d = t.dept;
+    if (d.includes("业务") || d.includes("产品")) return { group: "bu", label: d };
+    if (d.includes("管理") || d.includes("决策") || d.includes("规划")) return { group: "mgmt", label: d };
+    if (d.includes("研发") || d.includes("架构") || d.includes("技术")) return { group: "tech", label: d };
+    return { group: "ext", label: d };
+  }
+  const creator = (t.creator || "").trim();
+  const subj = (t.subject || "").trim();
+
+  if (creator.includes("业务") || subj.includes("业务") || subj.includes("运营") || creator.includes("产品")) {
+    return { group: "bu", label: creator || "核心业务" };
+  }
+  if (creator.includes("管理") || creator.includes("决策") || subj.includes("规划") || creator.includes("领导")) {
+    return { group: "mgmt", label: creator || "决策与规划" };
+  }
+  if (creator.includes("研发") || creator.includes("架构") || subj.includes("技术") || subj.includes("代码")) {
+    return { group: "tech", label: creator || "架构与研发" };
+  }
+  return { group: "ext", label: creator || "协同与工具" };
+}
+
+function renderTodos() {
+  const todos = state.todos;
+  const table = document.getElementById("checklistTable");
+  const filterBar = document.getElementById("deptFilterBar");
+
+  const counts = { all: todos.length, bu: 0, mgmt: 0, tech: 0, ext: 0 };
+  todos.forEach(t => {
+    const cat = categorizeTodo(t);
+    counts[cat.group] = (counts[cat.group] || 0) + 1;
+  });
+
+  filterBar.innerHTML = `
+    <button class="dept-pill ${activeDeptFilter==='all'?'active':''}" onclick="setDeptFilter('all')">全部待办 <span class="count">(${counts.all})</span></button>
+    <button class="dept-pill ${activeDeptFilter==='bu'?'active':''}" onclick="setDeptFilter('bu')">核心业务 <span class="count">(${counts.bu})</span></button>
+    <button class="dept-pill ${activeDeptFilter==='mgmt'?'active':''}" onclick="setDeptFilter('mgmt')">决策与规划 <span class="count">(${counts.mgmt})</span></button>
+    <button class="dept-pill ${activeDeptFilter==='tech'?'active':''}" onclick="setDeptFilter('tech')">架构与研发 <span class="count">(${counts.tech})</span></button>
+    <button class="dept-pill ${activeDeptFilter==='ext'?'active':''}" onclick="setDeptFilter('ext')">协同与工具 <span class="count">(${counts.ext})</span></button>
+  `;
+
+  const filtered = todos.filter(t => {
+    if (activeDeptFilter !== "all") {
+      const cat = categorizeTodo(t);
+      if (cat.group !== activeDeptFilter) return false;
+    }
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      if (!t.subject.toLowerCase().includes(q) && !(t.creator||"").toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById("todoStatsText").textContent =
+    `当前展示 ${filtered.length} 条待办 · 点击复选框标记完成 · 可直接点击“转为正式需求”`;
+
+  table.innerHTML = "";
+  if (filtered.length === 0) {
+    table.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:36px 10px;font-size:13px;">暂无待办事项</div>`;
+    return;
+  }
+
+  filtered.forEach(t => {
+    const isDone = state.doneTodoIds.has(t.id);
+    const cat = categorizeTodo(t);
+
+    const item = document.createElement("div");
+    item.className = `checklist-item ${isDone ? 'is-done' : ''}`;
+    item.innerHTML = `
+      <div class="checklist-left">
+        <div class="todo-checkbox" onclick="toggleTodoDone('${t.id}')">
+          ${isDone ? '✓' : ''}
+        </div>
+        <span class="dept-tag ${cat.group}">${escapeHtml(cat.label)}</span>
+        <span class="checklist-subject">${escapeHtml(t.subject)}</span>
+      </div>
+      <div class="checklist-right">
+        <span class="checklist-date">${escapeHtml(t.date || "")}</span>
+        <button class="btn-convert" onclick="convertTodoToFunnel('${t.id}')" title="升级为正式需求放入看板">转为正式需求 ›</button>
+      </div>
+    `;
+    table.appendChild(item);
+  });
+}
+
+function setDeptFilter(dept) {
+  activeDeptFilter = dept;
+  renderTodos();
+}
+
+function toggleTodoDone(id) {
+  if (state.doneTodoIds.has(id)) {
+    state.doneTodoIds.delete(id);
+  } else {
+    state.doneTodoIds.add(id);
+  }
+  saveState();
+  renderTodos();
+  renderMetrics();
+}
+
+function convertTodoToFunnel(todoId) {
+  const t = state.todos.find(x => x.id === todoId);
+  if (!t) return;
+  const newReq = {
+    id: "r-" + Date.now(),
+    title: t.subject,
+    source: t.creator || "协同待办",
+    channel: "dingtalk_todo",
+    date: t.date || new Date().toISOString().split("T")[0],
+    status: "todo",
+    updated: new Date().toISOString().split("T")[0],
+    quote: "转自协同待办：" + t.subject,
+    blocker: "",
+    notes: "来自协同待办 ID: " + t.id
+  };
+  state.requirements.unshift(newReq);
+  state.doneTodoIds.add(t.id);
+  saveState();
+  renderAll();
+  switchMainView("kanban");
+  alert(`已将待办「${t.subject}」转入需求看板【待评估】列！`);
+}
+
+/* ==========================================================================
+   View 4: 技术待办 (Code TODO)
+   ========================================================================== */
+function renderCodeTodos() {
+  const listEl = document.getElementById("codeTodoList");
+  listEl.innerHTML = "";
+  const codeTodos = state.codeTodos || [];
+
+  if (codeTodos.length === 0) {
+    listEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:36px 10px;font-size:13px;">代码库中暂无待办事项</div>`;
+    return;
+  }
+
+  codeTodos.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "code-todo-card";
+    card.innerHTML = `
+      <div class="code-todo-main">
+        <div class="code-todo-text">${escapeHtml(c.text)}</div>
+        <div class="code-todo-loc">${escapeHtml(c.file)}:${c.line}</div>
+      </div>
+      <span class="code-todo-tag">代码 TODO</span>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+/* ==========================================================================
+   View Switching & Toolbar Handlers
+   ========================================================================== */
+function switchMainView(tabName) {
+  activeTab = tabName;
+  document.querySelectorAll(".nav-tab").forEach(tab => tab.classList.remove("active"));
+  document.getElementById(`tab-${tabName}`).classList.add("active");
+
+  document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(`panel-${tabName}`).classList.add("active");
+
+  if (tabName === "kanban") renderKanban();
+  if (tabName === "timeline") {
+    renderTimeline();
+    setTimeout(scrollToToday, 60);
+  }
+  if (tabName === "todos") renderTodos();
+  if (tabName === "code") renderCodeTodos();
+}
+
+function onSearchInput() {
+  currentSearch = document.getElementById("searchInput").value.trim();
+  renderAll();
+}
+
+function onChannelChange() {
+  currentChannel = document.getElementById("channelSelect").value;
+  renderAll();
+}
+
+function toggleTheme() {
+  const curr = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = curr === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(LS_THEME, next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  document.getElementById("themeToggleBtn").textContent = theme === "dark" ? "🌙" : "☀️";
+}
+
+/* ==========================================================================
+   Modal Operations
+   ========================================================================== */
+function openAddModal() {
+  editingId = null;
+  document.getElementById("modalTitle").textContent = "新建需求事项";
+  document.getElementById("btnDeleteReq").style.display = "none";
+  document.getElementById("fTitle").value = "";
+  document.getElementById("fStatus").value = "todo";
+  document.getElementById("fChannel").value = "manual";
+  document.getElementById("fSource").value = "";
+  document.getElementById("fDate").value = new Date().toISOString().split("T")[0];
+  document.getElementById("fQuote").value = "";
+  document.getElementById("fBlocker").value = "";
+  document.getElementById("fNotes").value = "";
+  document.getElementById("editModal").classList.add("open");
+}
+
+function openEditModal(id) {
+  const r = state.requirements.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById("modalTitle").textContent = "编辑需求事项";
+  document.getElementById("btnDeleteReq").style.display = "inline-flex";
+  document.getElementById("fTitle").value = r.title || "";
+  document.getElementById("fStatus").value = r.status || "todo";
+  document.getElementById("fChannel").value = r.channel || "manual";
+  document.getElementById("fSource").value = r.source || "";
+  document.getElementById("fDate").value = r.date || "";
+  document.getElementById("fQuote").value = r.quote || "";
+  document.getElementById("fBlocker").value = r.blocker || "";
+  document.getElementById("fNotes").value = r.notes || "";
+  document.getElementById("editModal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("editModal").classList.remove("open");
+  editingId = null;
+}
+
+function saveReqForm() {
+  const title = document.getElementById("fTitle").value.trim();
+  if (!title) {
+    alert("请填写需求标题！");
+    return;
+  }
+  const status = document.getElementById("fStatus").value;
+  const channel = document.getElementById("fChannel").value;
+  const source = document.getElementById("fSource").value.trim();
+  const date = document.getElementById("fDate").value || new Date().toISOString().split("T")[0];
+  const quote = document.getElementById("fQuote").value.trim();
+  const blocker = document.getElementById("fBlocker").value.trim();
+  const notes = document.getElementById("fNotes").value.trim();
+
+  if (editingId) {
+    const r = state.requirements.find(x => x.id === editingId);
+    if (r) {
+      r.title = title;
+      r.status = status;
+      r.channel = channel;
+      r.source = source;
+      r.date = date;
+      r.quote = quote;
+      r.blocker = blocker;
+      r.notes = notes;
+      r.updated = new Date().toISOString().split("T")[0];
+    }
+  } else {
+    const newReq = {
+      id: "r-" + Date.now(),
+      title,
+      status,
+      channel,
+      source,
+      date,
+      quote,
+      blocker,
+      notes,
+      updated: new Date().toISOString().split("T")[0]
+    };
+    state.requirements.unshift(newReq);
+  }
+
+  saveState();
+  renderAll();
+  closeModal();
+}
+
+function deleteCurrentReq() {
+  if (!editingId) return;
+  if (!confirm("确定要删除此需求事项吗？")) return;
+  state.requirements = state.requirements.filter(x => x.id !== editingId);
+  saveState();
+  renderAll();
+  closeModal();
+}
+
+/* ==========================================================================
+   Export / Import / Report
+   ========================================================================== */
+function copyDingTalkSummary() {
+  const reqs = state.requirements;
+  const blocked = reqs.filter(r => r.status === "blocked" || !!r.blocker);
+  const stale = reqs.filter(isStaleReq);
+  const doing = reqs.filter(r => r.status === "doing");
+  const openTodos = state.todos.filter(t => !state.doneTodoIds.has(t.id));
+
+  let text = `📌 【需求与协同待办推进工作简报 · ${new Date().toISOString().split('T')[0]}】\n`;
+  text += `--------------------------------------\n`;
+  text += `📊 推进概况：需求共 ${reqs.length} 项（推进中 ${doing.length} 项，已完成 ${reqs.filter(r=>r.status==='done').length} 项）\n\n`;
+
+  if (blocked.length > 0) {
+    text += `⚠️ 当前重点卡点（${blocked.length} 项）：\n`;
+    blocked.forEach((r, i) => {
+      text += `  ${i+1}. ${r.title}（来源：${r.source||'未知'}）\n     👉 卡点：${r.blocker || '待确认卡点原因'}\n`;
+    });
+    text += `\n`;
+  }
+
+  if (stale.length > 0) {
+    text += `⏱️ 超14天未更新事项（共 ${stale.length} 项）：\n`;
+    stale.slice(0, 5).forEach((r, i) => {
+      text += `  ${i+1}. ${r.title}（${r.date} 提出，已停滞 ${getDaysSince(r.updated||r.date)} 天）\n`;
+    });
+    if (stale.length > 5) text += `  ...等共 ${stale.length} 项\n`;
+    text += `\n`;
+  }
+
+  text += `📋 协同待办未结：共 ${openTodos.length} 项待处理\n`;
+  text += `🌐 在线看板：https://req-funnel-board.app.workbuddy.host/?sharecode=RCSP6DQDN5`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert("工作简报已复制到剪贴板，可直接粘贴发到钉钉群！");
+  }).catch(() => {
+    prompt("请手动复制以下简报内容：", text);
+  });
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `需求看板数据备份_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.requirements) state.requirements = data.requirements;
+      if (data.doneTodoIds) state.doneTodoIds = new Set(data.doneTodoIds);
+      saveState();
+      renderAll();
+      alert("数据导入成功！");
+    } catch(err) {
+      alert("导入失败：文件格式不正确");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
+
+</body>
+</html>

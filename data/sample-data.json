@@ -1,0 +1,252 @@
+{
+  "generatedAt": "2026-10-23 12:00",
+  "version": "1.0.0",
+  "sources": {
+    "totalReqs": 10,
+    "activeTasks": 8,
+    "todos": 14,
+    "codeTodos": 3
+  },
+  "requirements": [
+    {
+      "id": "req-01",
+      "title": "第三方开放平台 API 速率限制排队队列设计",
+      "source": "架构评审",
+      "date": "2026-10-12",
+      "status": "blocked",
+      "updated": "2026-10-14",
+      "quote": "对接第三方开放平台时触发每秒 QPS 限制，需要设计基于 Redis Token Bucket 的平滑削峰排队队列，保证核心订单同步不丢单。",
+      "blocker": "需跨部门联合评审 Redis 集群容量规划与死信队列告警机制",
+      "notes": "已完成本地 POC 验证，等待基础设施团队确认中间件生产选型。",
+      "channel": "ticket"
+    },
+    {
+      "id": "req-02",
+      "title": "日历时间轴横向甘特图与冻结列交互优化",
+      "source": "体验优化",
+      "date": "2026-10-15",
+      "status": "doing",
+      "updated": "2026-10-23",
+      "quote": "支持 4 个月跨度横向拖拽与平滑触控滑动，左侧需求事项列吸顶冻结，支持“一键定位今日”锚点跳转。",
+      "blocker": "",
+      "notes": "v1.0.0 核心交互特性，已完成主流分辨率与触控适配。",
+      "channel": "project_task"
+    },
+    {
+      "id": "req-03",
+      "title": "暗黑 / 明亮主题双模自适应与护眼色板",
+      "source": "产品规划",
+      "date": "2026-10-18",
+      "status": "doing",
+      "updated": "2026-10-22",
+      "quote": "采用深色板岩蓝与温和纸张灰调，杜绝高对比度眩光，系统级跟随系统外观或手动切换。",
+      "blocker": "",
+      "notes": "已接入 CSS Custom Properties 主题系统，持久化至 localStorage。",
+      "channel": "project_task"
+    },
+    {
+      "id": "req-04",
+      "title": "自动化定时数据同步与发布流水线",
+      "source": "DevOps",
+      "date": "2026-10-20",
+      "status": "doing",
+      "updated": "2026-10-23",
+      "quote": "通过 Python 脚本聚合多源数据（Jira/飞书/钉钉/代码仓库），定时生成静态看板并自动推送部署。",
+      "blocker": "",
+      "notes": "已支持增量扫描与纯静态 JSON 注入，零服务端运行成本。",
+      "channel": "project_task"
+    },
+    {
+      "id": "req-05",
+      "title": "多渠道订单数据实时清洗与格式统一",
+      "source": "数据工程",
+      "date": "2026-10-16",
+      "status": "doing",
+      "updated": "2026-10-21",
+      "quote": "针对各渠道不同命名规范进行字段映射与枚举清洗，输出标准化订单宽表。",
+      "blocker": "",
+      "notes": "已完成数据字典编写与初期转换流水线搭建。",
+      "channel": "project_task"
+    },
+    {
+      "id": "req-06",
+      "title": "用户安全二次认证 (2FA / TOTP) 接入",
+      "source": "安全合规",
+      "date": "2026-10-08",
+      "status": "todo",
+      "updated": "2026-10-10",
+      "quote": "针对敏感业务管理模块增加基于 TOTP 动态验证码与登录设备绑定保护，防止凭据流失。",
+      "blocker": "待安全团队提供公共认证中间件统一接入规范",
+      "notes": "优先在管理后台关键接口中开启试运行。",
+      "channel": "manual"
+    },
+    {
+      "id": "req-07",
+      "title": "多语言国际化 (i18n) 语言包动态加载",
+      "source": "用户反馈",
+      "date": "2026-09-15",
+      "status": "todo",
+      "updated": "2026-09-18",
+      "quote": "为海外协同团队提供英文/多语言界面切换支持，首期支持中英文。",
+      "blocker": "",
+      "notes": "列入 Q4 储备需求池，等待国际化词条规范整理。",
+      "channel": "manual"
+    },
+    {
+      "id": "req-08",
+      "title": "移动端触摸手势与触控板平滑滑动优化",
+      "source": "移动体验",
+      "date": "2026-09-20",
+      "status": "todo",
+      "updated": "2026-09-25",
+      "quote": "在平板和手机设备上优化时间轴手势缩放与看板卡片纵向滑动的冲突问题。",
+      "blocker": "",
+      "notes": "采用 touch-action 与 CSS Scroll Snap 进行性能调优。",
+      "channel": "manual"
+    },
+    {
+      "id": "req-09",
+      "title": "v1.0.0 正式版发布与开源标准化",
+      "source": "版本发布",
+      "date": "2026-10-22",
+      "status": "done",
+      "updated": "2026-10-23",
+      "quote": "封装零 npm 构建依赖的独立开源版本，剥离私有业务数据，提供标准化示例与接入指南。",
+      "blocker": "",
+      "notes": "已打包独立 Git 仓库，附带 MIT License、完整文档与演示数据。",
+      "channel": "project_task"
+    },
+    {
+      "id": "req-10",
+      "title": "纯前端 JSON 数据导入导出与工作简报生成",
+      "source": "效率工具",
+      "date": "2026-10-10",
+      "status": "done",
+      "updated": "2026-10-20",
+      "quote": "支持一键导出/导入看板快照，一键复制格式化 Markdown 推进简报至系统剪贴板。",
+      "blocker": "",
+      "notes": "无服务端存储依赖，数据完全由使用者本地掌控。",
+      "channel": "project_task"
+    }
+  ],
+  "todos": [
+    {
+      "id": "todo-01",
+      "subject": "多租户数据权限隔离方案技术调研与评审",
+      "creator": "决策与规划",
+      "dept": "决策与规划",
+      "date": "2026-10-18"
+    },
+    {
+      "id": "todo-02",
+      "subject": "核心 API 响应耗时与慢查询告警阈值调优",
+      "creator": "架构与研发",
+      "dept": "架构与研发",
+      "date": "2026-10-19"
+    },
+    {
+      "id": "todo-03",
+      "subject": "看板分列卡片内滚动条视觉样式精细化",
+      "creator": "核心业务",
+      "dept": "核心业务",
+      "date": "2026-10-20"
+    },
+    {
+      "id": "todo-04",
+      "subject": "Webhook 机器人推送模板样式与 Emoji 对齐",
+      "creator": "协同与工具",
+      "dept": "协同与工具",
+      "date": "2026-10-20"
+    },
+    {
+      "id": "todo-05",
+      "subject": "代码仓库 TODO/FIXME 自动化扫描过滤规则优化",
+      "creator": "架构与研发",
+      "dept": "架构与研发",
+      "date": "2026-10-21"
+    },
+    {
+      "id": "todo-06",
+      "subject": "浏览器离线 LocalStorage 缓存与自动恢复机制",
+      "creator": "架构与研发",
+      "dept": "架构与研发",
+      "date": "2026-10-21"
+    },
+    {
+      "id": "todo-07",
+      "subject": "甘特时间轴支持日期范围拖拽与关键里程碑标记",
+      "creator": "核心业务",
+      "dept": "核心业务",
+      "date": "2026-10-22"
+    },
+    {
+      "id": "todo-08",
+      "subject": "产品需求全景视图支持按季度进行层级归类",
+      "creator": "决策与规划",
+      "dept": "决策与规划",
+      "date": "2026-10-22"
+    },
+    {
+      "id": "todo-09",
+      "subject": "针对大型数据集的虚拟滚动 (Virtual Scroll) 原型测试",
+      "creator": "架构与研发",
+      "dept": "架构与研发",
+      "date": "2026-10-22"
+    },
+    {
+      "id": "todo-10",
+      "subject": "协同清单支持多选批量转为需求看板卡片",
+      "creator": "核心业务",
+      "dept": "核心业务",
+      "date": "2026-10-23"
+    },
+    {
+      "id": "todo-11",
+      "subject": "导出 CSV / Excel 格式报表功能支持",
+      "creator": "核心业务",
+      "dept": "核心业务",
+      "date": "2026-10-23"
+    },
+    {
+      "id": "todo-12",
+      "subject": "企业微信 / 飞书 / 钉钉待办事项双向同步插件框架",
+      "creator": "协同与工具",
+      "dept": "协同与工具",
+      "date": "2026-10-23"
+    },
+    {
+      "id": "todo-13",
+      "subject": "设计系统设计令牌 (Design Tokens) 规范文档整理",
+      "creator": "核心业务",
+      "dept": "核心业务",
+      "date": "2026-10-23"
+    },
+    {
+      "id": "todo-14",
+      "subject": "GitHub Actions 持续集成与自动化发布测试",
+      "creator": "协同与工具",
+      "dept": "协同与工具",
+      "date": "2026-10-23"
+    }
+  ],
+  "codeTodos": [
+    {
+      "file": "scripts/generate.py",
+      "line": 42,
+      "tag": "TODO",
+      "text": "支持从远程 Webhook 或 GraphQL 接口拉取需求数据"
+    },
+    {
+      "file": "index.html",
+      "line": 215,
+      "tag": "TODO",
+      "text": "在低配移动设备上优化横向惯性平滑滑动的帧率"
+    },
+    {
+      "file": "scripts/generate.py",
+      "line": 98,
+      "tag": "FIXME",
+      "text": "增加对非 UTF-8 编码任务描述文件的自动探测与容错"
+    }
+  ]
+}
